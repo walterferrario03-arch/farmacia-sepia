@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Pedido | Farmacia Sepia</title>
+  <link rel="icon" href="img/logo.gif" type="image/gif">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to bottom, #e8f5e9, #c8e6c9);
+      color: #1a1a1a;
+      padding-bottom: 2rem;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #85b8a0 0%, #4caf50 100%);
+      color: white;
+      text-align: center;
+      padding: 1.2rem 1rem;
+    }
+
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .header img {
+      width: 60px;
+      height: 60px;
+      margin-top: 0.6rem;
+      border-radius: 8px;
+      background: white;
+      padding: 4px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 1.2rem auto;
+      padding: 0 1.2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.3rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+      color: #2e7d32;
+      font-size: 1.05rem;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #a5d6a7;
+      border-radius: 10px;
+      font-size: 1rem;
+      background: white;
+    }
+
+    .flores-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+      margin-top: 0.5rem;
+    }
+
+    .flor-item {
+      background: white;
+      border: 1px solid #c8e6c9;
+      border-radius: 8px;
+      padding: 7px 4px;
+      text-align: center;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .flor-item.selected {
+      background: #4caf50;
+      color: white;
+      border-color: #2e7d32;
+      font-weight: 600;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .btn-primary {
+      background: #2e7d32;
+      color: white;
+      box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: #1b5e20;
+    }
+
+    .oculto {
+      display: none;
+    }
+
+    .aviso {
+      background: #fff8e1;
+      color: #ff8f00;
+      padding: 0.6rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>FARMACIA SEPIA</h1>
+    <p>Flores de Bach • Fórmulas Personalizadas</p>
+    <img src="img/Flores.gif" alt="Flores de Bach">
+  </div>
+
+  <div class="container" id="app-container">
+    <p style="text-align:center; color:#2e7d32;">Cargando aplicación...</p>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('app-container');
+      
+      const flores = [
+        "Agrimony", "Aspen", "Beech", "Centaury", "Cerato", "Cherry Plum",
+        "Chestnut Bud", "Chicory", "Clematis", "Crab Apple", "Elm", "Gentian",
+        "Gorse", "Heather", "Holly", "Honeysuckle", "Hornbeam", "Impatiens",
+        "Larch", "Mimulus", "Mustard", "Oak", "Olive", "Pine", "Red Chestnut",
+        "Rock Rose", "Rock Water", "Scleranthus", "Star of Bethlehem",
+        "Sweet Chestnut", "Vervain", "Vine", "Walnut", "Water Violet",
+        "White Chestnut", "Wild Oat", "Wild Rose", "Willow", "Rescue Remedy"
+      ];
+
+      const tipos = {
+        gotas: { label: "Gotas", tamanos: ["30 ml", "60 ml", "100 ml"], conservante: true },
+        spray: { label: "Spray bucal", tamanos: ["30 ml", "60 ml", "100 ml"], conservante: true },
+        crema: { label: "Crema", tamanos: ["30 gr", "60 gr"], conservante: false }
+      };
+
+      let floresSeleccionadas = [];
+      let formulas = [];
+
+      container.innerHTML = `
+        <div class="form-group">
+          <label>1. Seleccioná las flores para tu fórmula</label>
+          <div class="flores-grid" id="flores-grid"></div>
+        </div>
+
+        <div class="form-group">
+          <label>2. Elegí la presentación</label>
+          <select id="tipo">
+            <option value="">— Tipo —</option>
+            <option value="gotas">Gotas</option>
+            <option value="spray">Spray bucal</option>
+            <option value="crema">Crema</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="grupo-tamano" style="display:none;">
+          <label>Tamaño</label>
+          <select id="tamano">
+            <option value="">— Elegí —</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="grupo-conservante" style="display:none;">
+          <label>¿Con conservante?</label>
+          <select id="conservante">
+            <option value="con">Con conservante</option>
+            <option value="sin">Sin conservante</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="grupo-cantidad" style="display:none;">
+          <label>Cantidad de unidades</label>
+          <select id="cantidad">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+
+        <button type="button" id="btn-agregar-formula" class="btn btn-secondary" disabled style="background:#e8f5e9;color:#2e7d32;margin:1rem 0;">
+          + Agregar esta fórmula
+        </button>
+
+        <div id="resumen-fórmulas" class="oculto" style="background:white;border-radius:12px;padding:1rem;margin:1.2rem 0;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <h3 style="color:#2e7d32;text-align:center;margin-bottom:1rem;">Tus fórmulas</h3>
+          <div id="lista-formulas"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Tu nombre</label>
+          <input type="text" id="nombre" placeholder="Ej: Ana Martínez">
+        </div>
+
+        <div class="form-group">
+          <label>Modo de entrega</label>
+          <select id="entrega">
+            <option value="">— Elegí —</option>
+            <option value="retiro">Retiro en farmacia</option>
+            <option value="domicilio">Envío a domicilio</option>
+          </select>
+          <div id="aviso-envio" class="aviso">
+            ⚠️ El envío a domicilio tiene un cargo extra según la zona.
+          </div>
+          <div id="grupo-direccion" class="oculto">
+            <label>Dirección de envío</label>
+            <input type="text" id="direccion" placeholder="Calle, número, localidad">
+          </div>
+        </div>
+
+        <!-- Campo de observaciones -->
+        <div class="form-group">
+          <label>Observaciones (opcional)</label>
+          <textarea id="observaciones" rows="3" placeholder="Ej: Alergia a X, preferencia de horario, etc."></textarea>
+        </div>
+
+        <button type="button" id="btn-enviar" class="btn btn-primary">
+          <i class="fab fa-whatsapp"></i> Enviar pedido por WhatsApp
+        </button>
+      `;
+
+      // === Render flores ===
+      const floresGrid = document.getElementById('flores-grid');
+      flores.forEach(flor => {
+        const div = document.createElement('div');
+        div.className = 'flor-item';
+        div.textContent = flor;
+        div.onclick = () => {
+          div.classList.toggle('selected');
+          if (div.classList.contains('selected')) {
+            floresSeleccionadas.push(flor);
+          } else {
+            floresSeleccionadas = floresSeleccionadas.filter(f => f !== flor);
+          }
+          actualizarBoton();
+        };
+        floresGrid.appendChild(div);
+      });
+
+      function actualizarBoton() {
+        const tipo = document.getElementById('tipo').value;
+        const tamano = document.getElementById('tamano').value;
+        document.getElementById('btn-agregar-formula').disabled = !(floresSeleccionadas.length > 0 && tipo && tamano);
+      }
+
+      document.getElementById('tipo').addEventListener('change', () => {
+        const tipo = document.getElementById('tipo').value;
+        const gTamano = document.getElementById('grupo-tamano');
+        const gConservante = document.getElementById('grupo-conservante');
+        const gCantidad = document.getElementById('grupo-cantidad');
+        const selTamano = document.getElementById('tamano');
+
+        if (tipo && tipos[tipo]) {
+          gTamano.style.display = 'block';
+          selTamano.innerHTML = '<option value="">— Elegí —</option>' + 
+            tipos[tipo].tamanos.map(t => `<option value="${t}">${t}</option>`).join('');
+          gCantidad.style.display = 'block';
+          gConservante.style.display = tipos[tipo].conservante ? 'block' : 'none';
+        } else {
+          gTamano.style.display = 'none';
+          gConservante.style.display = 'none';
+          gCantidad.style.display = 'none';
+        }
+        actualizarBoton();
+      });
+
+      ['tamano', 'conservante', 'cantidad'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', actualizarBoton);
+      });
+
+      document.getElementById('entrega').addEventListener('change', (e) => {
+        const aviso = document.getElementById('aviso-envio');
+        const dirGroup = document.getElementById('grupo-direccion');
+        if (e.target.value === 'domicilio') {
+          aviso.style.display = 'block';
+          dirGroup.classList.remove('oculto');
+        } else {
+          aviso.style.display = 'none';
+          dirGroup.classList.add('oculto');
+        }
+      });
+
+      document.getElementById('btn-agregar-formula').addEventListener('click', () => {
+        const tipo = document.getElementById('tipo').value;
+        const tamano = document.getElementById('tamano').value;
+        const conservante = document.getElementById('conservante').value;
+        const cantidad = document.getElementById('cantidad').value || "1";
+
+        formulas.push({
+          id: Date.now(),
+          flores: [...floresSeleccionadas],
+          tipo,
+          tamano,
+          conservante: tipos[tipo].conservante ? conservante : null,
+          cantidad
+        });
+
+        // ✅ REINICIO COMPLETO (incluyendo cantidad)
+        floresSeleccionadas = [];
+        document.querySelectorAll('.flor-item').forEach(el => el.classList.remove('selected'));
+        document.getElementById('tipo').value = '';
+        document.getElementById('tamano').innerHTML = '<option value="">— Elegí —</option>';
+        document.getElementById('conservante').value = 'con'; // valor por defecto
+        document.getElementById('cantidad').value = '1';     // ✅ ¡SE REINICIA!
+        document.getElementById('grupo-tamano').style.display = 'none';
+        document.getElementById('grupo-conservante').style.display = 'none';
+        document.getElementById('grupo-cantidad').style.display = 'none';
+        actualizarBoton();
+
+        renderResumen();
+      });
+
+      function renderResumen() {
+        const contenedor = document.getElementById('lista-formulas');
+        const resumen = document.getElementById('resumen-fórmulas');
+        if (formulas.length === 0) {
+          resumen.classList.add('oculto');
+          return;
+        }
+        resumen.classList.remove('oculto');
+        contenedor.innerHTML = formulas.map(f => `
+          <div style="padding:0.8rem 0;border-bottom:1px dashed #e0e0e0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">
+              <strong>${tipos[f.tipo].label} (${f.cantidad} u.)</strong>
+              <button class="btn-borrar" data-id="${f.id}" style="background:#ffcdd2;color:#c62828;border:none;width:24px;height:24px;border-radius:50%;font-size:0.9rem;">×</button>
+            </div>
+            <div style="font-size:0.9rem;color:#555;">${f.flores.join(', ')}</div>
+            <div style="font-size:0.85rem;color:#2e7d32;margin-top:4px;">
+              ${f.tamano}${tipos[f.tipo].conservante ? ` • ${f.conservante === 'con' ? 'con' : 'sin'} conservante` : ''}
+            </div>
+          </div>
+        `).join('');
+
+        document.querySelectorAll('.btn-borrar').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = parseInt(btn.dataset.id);
+            formulas = formulas.filter(f => f.id !== id);
+            renderResumen();
+          });
+        });
+      }
+
+      document.getElementById('btn-enviar').addEventListener('click', () => {
+        const nombre = document.getElementById('nombre').value.trim();
+        const entrega = document.getElementById('entrega').value;
+        const direccion = document.getElementById('direccion').value.trim();
+        const observaciones = document.getElementById('observaciones').value.trim();
+
+        if (!nombre) { alert('⚠️ Ingresá tu nombre.'); return; }
+        if (!entrega) { alert('⚠️ Elegí modo de entrega.'); return; }
+        if (entrega === 'domicilio' && !direccion) { alert('⚠️ Ingresá tu dirección.'); return; }
+        if (formulas.length === 0) { alert('⚠️ Agregá al menos una fórmula.'); return; }
+
+        let modoEntrega = entrega === 'retiro' 
+          ? 'Retiro en farmacia (Calle 5 esq. 46 N° 701, La Plata)'
+          : `Envío a domicilio: ${direccion} (cargo extra según zona)`;
+
+        let mensaje = `¡Hola, Farmacia Sepia! Quisiera hacer un pedido:\n\n`;
+        mensaje += `*Nombre:* ${nombre}\n`;
+        mensaje += `*Entrega:* ${modoEntrega}\n\n`;
+
+        formulas.forEach((f, i) => {
+          let linea = `${i+1}. *${tipos[f.tipo].label}* - ${f.tamano} (${f.cantidad} u.)`;
+          if (tipos[f.tipo].conservante) {
+            linea += ` (${f.conservante === 'con' ? 'con' : 'sin'} conservante)`;
+          }
+          linea += `\n   Flores: ${f.flores.join(', ')}`;
+          mensaje += linea + '\n\n';
+        });
+
+        if (observaciones) {
+          mensaje += `*Observaciones:* ${observaciones}\n\n`;
+        }
+
+        mensaje += `¡Gracias!`;
+
+        window.open(`https://wa.me/542215116015?text=${encodeURIComponent(mensaje)}`, '_blank');
+      });
+    });
+  </script>
+</body>
+</html>
